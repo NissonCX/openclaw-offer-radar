@@ -2,7 +2,7 @@
 
 ![OpenClaw Offer Radar](./assets/banner.svg)
 
-> 一个面向中文 iPhone 用户的 OpenClaw Skill：从 Gmail 招聘邮件里提取真正重要的面试、笔试、测评、授权信息，并同步到 Apple Reminders。
+> 一个优先服务中文 Gmail 与 iPhone 提醒场景的 OpenClaw Skill：帮助用户从招聘邮件里提取真正重要的事件信息。
 
 [![Skill](https://img.shields.io/badge/OpenClaw-Skill-0f172a?style=flat-square)](./SKILL.md)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=flat-square)](./scripts/recruiting_sync.py)
@@ -11,11 +11,11 @@
 
 ## 这是什么
 
-`OpenClaw Offer Radar` 是一个面向中文 iPhone 用户的 Gmail 招聘邮件处理 skill。
+`OpenClaw Offer Radar` 是一个面向中文用户的招聘邮件处理 skill。
 
 它当前聚焦一条很明确的链路：
 
-`Gmail 招聘邮件 -> 重要事件识别 -> Apple Reminders`
+`招聘邮件 -> 重要事件识别 -> 提醒体验`
 
 ## 使用场景
 
@@ -24,7 +24,7 @@
 - 你用 Gmail 接收校招、实习、社招相关邮件
 - 邮件里会出现面试、笔试、在线测评、授权、补充材料等信息
 - 你希望 OpenClaw 帮你把真正重要的事件整理出来
-- 你希望最终提醒同步到 iPhone，而不是停留在邮箱里
+- 你希望重要事件最终能进入更适合日常查看和提醒的地方，比如 iPhone 提醒事项
 
 ## 需求说明
 
@@ -35,27 +35,28 @@
 - 有些邮件只是投递成功或流程通知，不应该进入提醒事项
 - 提醒事项里应该保留中文标题、关键时间和有效链接，而不是一堆无关信息
 
-这个仓库的目标不是做“大而全的邮箱自动化”，而是先把 Gmail 招聘邮件这一条高价值场景做稳。
+这个仓库当前先聚焦招聘邮件这一条高价值场景，后续会继续往更普适的方向演进。
 
 ## 当前范围
 
-目前 README 先只保留高层信息，因为识别规则和实现细节还会继续调整。
+目前 README 只保留高层信息，因为识别规则、接入方式和实现细节都还会继续调整。
 
 当前重点是：
 
 - Gmail 招聘邮件筛选
 - 面试 / 笔试 / 测评 / 授权类事件识别
-- 中文提醒生成
-- Apple Reminders 同步
+- 中文事件整理
+- 提醒事项同步
 
 ## 快速开始
 
-前置条件：
+当前示例环境：
 
 - macOS
-- Apple Mail 已绑定 Gmail
-- Apple Reminders 已授权
-- `gog` 已完成 Gmail OAuth
+- Gmail
+- Apple Mail
+- Apple Reminders
+- `gog`
 
 运行一次扫描：
 
@@ -86,11 +87,11 @@ openclaw-offer-radar/
 └── scripts/
 ```
 
-## 当前边界
+## 说明
 
-- 当前主要基于 Gmail
-- 当前运行链路基于 `macOS + Apple Mail + Apple Reminders`，目标提醒终点是 iPhone
-- 规则和模板仍在持续迭代
+- 当前仓库优先围绕 Gmail 场景设计
+- 当前示例实现使用了 Apple 生态中的提醒能力
+- 规则、模板和接入方式仍在持续迭代
 
 ## License
 

@@ -1,65 +1,96 @@
-<svg width="1280" height="640" viewBox="0 0 1280 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OpenClaw Offer Radar">
+<svg width="1280" height="640" viewBox="0 0 1280 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OpenClaw Offer Radar banner">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#07111f"/>
-      <stop offset="55%" stop-color="#0e2746"/>
-      <stop offset="100%" stop-color="#12335d"/>
+      <stop offset="0%" stop-color="#08111d"/>
+      <stop offset="52%" stop-color="#10263f"/>
+      <stop offset="100%" stop-color="#123c56"/>
     </linearGradient>
-    <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#56f0ff"/>
-      <stop offset="100%" stop-color="#9efb8f"/>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#12273f"/>
+      <stop offset="100%" stop-color="#0d1c2f"/>
     </linearGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="10" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#66e5ff"/>
+      <stop offset="100%" stop-color="#87f4a2"/>
+    </linearGradient>
+    <radialGradient id="orbA" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#56d8ff" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#56d8ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="orbB" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#7ef0a1" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#7ef0a1" stop-opacity="0"/>
+    </radialGradient>
   </defs>
 
-  <rect width="1280" height="640" fill="url(#bg)"/>
-  <circle cx="1060" cy="130" r="170" fill="#173c6b" opacity="0.28"/>
-  <circle cx="165" cy="520" r="220" fill="#124268" opacity="0.22"/>
+  <rect width="1280" height="640" rx="32" fill="url(#bg)"/>
+  <circle cx="1070" cy="128" r="210" fill="url(#orbA)"/>
+  <circle cx="176" cy="560" r="250" fill="url(#orbB)"/>
 
-  <g opacity="0.18" stroke="#7cc7ff" stroke-width="2">
-    <path d="M0 96 H1280"/>
-    <path d="M0 176 H1280"/>
-    <path d="M0 256 H1280"/>
-    <path d="M0 336 H1280"/>
-    <path d="M0 416 H1280"/>
-    <path d="M0 496 H1280"/>
-    <path d="M0 576 H1280"/>
-    <path d="M128 0 V640"/>
-    <path d="M288 0 V640"/>
-    <path d="M448 0 V640"/>
-    <path d="M608 0 V640"/>
-    <path d="M768 0 V640"/>
-    <path d="M928 0 V640"/>
-    <path d="M1088 0 V640"/>
+  <g opacity="0.14" stroke="#8ac7ef" stroke-width="1">
+    <path d="M0 110 H1280"/>
+    <path d="M0 190 H1280"/>
+    <path d="M0 270 H1280"/>
+    <path d="M0 350 H1280"/>
+    <path d="M0 430 H1280"/>
+    <path d="M0 510 H1280"/>
+    <path d="M0 590 H1280"/>
+    <path d="M120 0 V640"/>
+    <path d="M280 0 V640"/>
+    <path d="M440 0 V640"/>
+    <path d="M600 0 V640"/>
+    <path d="M760 0 V640"/>
+    <path d="M920 0 V640"/>
+    <path d="M1080 0 V640"/>
   </g>
 
-  <g filter="url(#glow)">
-    <path d="M98 410 L250 410 L330 310 L430 310 L520 220 L690 220 L780 150 L965 150" fill="none" stroke="url(#line)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="250" cy="410" r="12" fill="#56f0ff"/>
-    <circle cx="430" cy="310" r="12" fill="#56f0ff"/>
-    <circle cx="690" cy="220" r="12" fill="#56f0ff"/>
-    <circle cx="965" cy="150" r="14" fill="#9efb8f"/>
+  <g transform="translate(86 96)">
+    <rect x="0" y="0" width="218" height="42" rx="21" fill="#10263c" stroke="#66e5ff" stroke-width="1.5"/>
+    <text x="24" y="27" font-size="20" font-family="SFMono-Regular, Menlo, Monaco, Consolas, monospace" fill="#aeeeff">OPENCLAW SKILL</text>
+
+    <text x="0" y="118" font-size="82" font-weight="700" font-family="'SF Pro Display', 'PingFang SC', 'Helvetica Neue', Arial, sans-serif" fill="#f7fbff">Offer Radar</text>
+    <text x="2" y="176" font-size="28" font-family="'PingFang SC', 'Noto Sans SC', 'Helvetica Neue', Arial, sans-serif" fill="#d7ecff">让招聘邮件里的关键事件，变成更值得被提醒的事</text>
+    <text x="2" y="220" font-size="28" font-family="'PingFang SC', 'Noto Sans SC', 'Helvetica Neue', Arial, sans-serif" fill="#9fc6e6">优先服务 Gmail 与 iPhone 提醒场景</text>
+
+    <g transform="translate(0 314)">
+      <rect x="0" y="0" width="144" height="52" rx="16" fill="#0f2136" stroke="#66e5ff" stroke-width="1.5"/>
+      <text x="28" y="33" font-size="23" font-family="SFMono-Regular, Menlo, Monaco, Consolas, monospace" fill="#e8fbff">Gmail</text>
+
+      <rect x="162" y="0" width="186" height="52" rx="16" fill="#0f2136" stroke="#8deaa3" stroke-width="1.5"/>
+      <text x="190" y="33" font-size="23" font-family="'PingFang SC', 'Noto Sans SC', 'Helvetica Neue', Arial, sans-serif" fill="#f1fff4">中文事件整理</text>
+
+      <rect x="366" y="0" width="188" height="52" rx="16" fill="#0f2136" stroke="#66e5ff" stroke-width="1.5"/>
+      <text x="392" y="33" font-size="23" font-family="'PingFang SC', 'Noto Sans SC', 'Helvetica Neue', Arial, sans-serif" fill="#f6fbff">iPhone 提醒</text>
+    </g>
   </g>
 
-  <g transform="translate(92 132)">
-    <rect x="0" y="-34" width="212" height="38" rx="19" fill="#123f69" stroke="#56f0ff" stroke-width="1.5"/>
-    <text x="22" y="-9" font-size="20" font-family="SFMono-Regular, Menlo, monospace" fill="#9de7ff">OPENCLAW SKILL</text>
+  <g transform="translate(742 114)">
+    <rect x="0" y="0" width="438" height="408" rx="30" fill="url(#panel)" stroke="#3b6a87" stroke-width="1.5"/>
 
-    <text x="0" y="76" font-size="84" font-weight="700" font-family="'PingFang SC', 'Noto Sans SC', sans-serif" fill="#f5fbff">Offer Radar</text>
-    <text x="0" y="134" font-size="30" font-family="'PingFang SC', 'Noto Sans SC', sans-serif" fill="#b7ddff">把招聘邮件里的关键时间、入口和事件更新</text>
-    <text x="0" y="176" font-size="30" font-family="'PingFang SC', 'Noto Sans SC', sans-serif" fill="#b7ddff">稳定同步成中文 Apple Reminders</text>
-  </g>
+    <g transform="translate(34 36)">
+      <text x="0" y="0" font-size="22" font-family="SFMono-Regular, Menlo, Monaco, Consolas, monospace" fill="#8cc8eb">FLOW</text>
+      <text x="0" y="42" font-size="34" font-weight="600" font-family="'PingFang SC', 'Noto Sans SC', 'Helvetica Neue', Arial, sans-serif" fill="#f7fbff">邮件到提醒，只保留真正重要的事件</text>
+    </g>
 
-  <g transform="translate(96 500)">
-    <rect x="0" y="0" width="168" height="54" rx="16" fill="#0d2541" stroke="#56f0ff" stroke-width="1.5"/>
-    <text x="24" y="34" font-size="24" font-family="SFMono-Regular, Menlo, monospace" fill="#dcfbff">Gmail + Mail</text>
-    <rect x="186" y="0" width="176" height="54" rx="16" fill="#0d2541" stroke="#7effa8" stroke-width="1.5"/>
-    <text x="211" y="34" font-size="24" font-family="SFMono-Regular, Menlo, monospace" fill="#ecfff3">Apple Reminders</text>
+    <g transform="translate(34 116)">
+      <rect x="0" y="0" width="370" height="74" rx="22" fill="#132842" stroke="#5cc8f0" stroke-width="1.5"/>
+      <circle cx="38" cy="37" r="13" fill="#66e5ff"/>
+      <text x="68" y="32" font-size="24" font-family="'PingFang SC', 'Noto Sans SC', 'Helvetica Neue', Arial, sans-serif" fill="#f6fbff">Gmail 招聘邮件</text>
+      <text x="68" y="56" font-size="18" font-family="'PingFang SC', 'Noto Sans SC', 'Helvetica Neue', Arial, sans-serif" fill="#9fc6e6">面试、笔试、测评、授权、更新邮件</text>
+
+      <path d="M184 90 L184 122" stroke="url(#accent)" stroke-width="4" stroke-linecap="round"/>
+
+      <rect x="0" y="138" width="370" height="92" rx="22" fill="#132842" stroke="#86e5a2" stroke-width="1.5"/>
+      <circle cx="38" cy="184" r="13" fill="#87f4a2"/>
+      <text x="68" y="178" font-size="24" font-family="'PingFang SC', 'Noto Sans SC', 'Helvetica Neue', Arial, sans-serif" fill="#f6fbff">重要事件识别</text>
+      <text x="68" y="202" font-size="18" font-family="'PingFang SC', 'Noto Sans SC', 'Helvetica Neue', Arial, sans-serif" fill="#9fc6e6">时间、截止、入口链接、事件更新</text>
+
+      <path d="M184 246 L184 278" stroke="url(#accent)" stroke-width="4" stroke-linecap="round"/>
+
+      <rect x="0" y="294" width="370" height="74" rx="22" fill="#132842" stroke="#5cc8f0" stroke-width="1.5"/>
+      <circle cx="38" cy="331" r="13" fill="#66e5ff"/>
+      <text x="68" y="326" font-size="24" font-family="'PingFang SC', 'Noto Sans SC', 'Helvetica Neue', Arial, sans-serif" fill="#f6fbff">提醒事项输出</text>
+      <text x="68" y="350" font-size="18" font-family="'PingFang SC', 'Noto Sans SC', 'Helvetica Neue', Arial, sans-serif" fill="#9fc6e6">更适合在 iPhone 上查看和提醒</text>
+    </g>
   </g>
 </svg>

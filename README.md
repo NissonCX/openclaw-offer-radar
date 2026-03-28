@@ -152,6 +152,16 @@ python3 ~/.openclaw/workspace/skills/openclaw-offer-radar/scripts/recruiting_syn
   --sync-reminders
 ```
 
+## 实际效果
+
+提醒列表页：
+
+![提醒列表效果](./assets/showcase-list.jpg)
+
+提醒详情页：
+
+![提醒详情效果](./assets/showcase-detail.jpg)
+
 ## 当前可配项
 
 当前版本最重要的配置主要是这些：

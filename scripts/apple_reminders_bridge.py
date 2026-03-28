@@ -166,6 +166,7 @@ def update_reminder(
             f'set name of r to "{escaped_title}"',
             "set body of r to noteText",
             f"set priority of r to {priority_value}",
+            "set completed of r to false",
         ]
     )
     if due:
@@ -293,7 +294,9 @@ def list_reminders(args: argparse.Namespace) -> int:
         "set rows to {}",
         "set theReminders to every reminder",
         "repeat with r in theReminders",
-        "set end of rows to (id of r & tab & name of r)",
+        "set completedFlag to \"0\"",
+        "if completed of r then set completedFlag to \"1\"",
+        "set end of rows to (id of r & tab & name of r & tab & completedFlag)",
         "end repeat",
         'set AppleScript\'s text item delimiters to linefeed',
         "return rows as text",

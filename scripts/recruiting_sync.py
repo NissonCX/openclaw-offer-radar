@@ -1540,18 +1540,24 @@ def parse_bridge_row(output: str) -> dict[str, str]:
     }
 
 
-def list_existing_reminders(list_name: str, account_name: str) -> list[dict[str, str]]:
+def list_existing_reminders(list_name: str, account_name: str) -> list[dict[str, Any]]:
     proc = run_bridge(["list", "--list", list_name, "--account", account_name])
     if proc.returncode != 0:
         raise RuntimeError(proc.stderr.strip() or proc.stdout.strip() or "list reminders failed")
-    rows: list[dict[str, str]] = []
+    rows: list[dict[str, Any]] = []
     for line in proc.stdout.splitlines():
         if not line.strip():
             continue
-        parts = line.split("\t", 1)
-        if len(parts) != 2:
+        parts = line.split("\t")
+        if len(parts) < 2:
             continue
-        rows.append({"id": parts[0], "title": parts[1]})
+        rows.append(
+            {
+                "id": parts[0],
+                "title": parts[1],
+                "isCompleted": len(parts) > 2 and parts[2] == "1",
+            }
+        )
     return rows
 
 
@@ -1627,9 +1633,11 @@ def sync_reminders(state: dict[str, Any], dry_run: bool = False) -> dict[str, in
     }
 
     existing_reminders = list_existing_reminders(list_name, account_name)
-    available_by_title: dict[str, list[str]] = {}
+    available_by_title: dict[str, list[dict[str, Any]]] = {}
+    existing_by_id: dict[str, dict[str, Any]] = {}
     for item in existing_reminders:
-        available_by_title.setdefault(item["title"], []).append(item["id"])
+        available_by_title.setdefault(item["title"], []).append(item)
+        existing_by_id[item["id"]] = item
 
     for event_id, entry in state.get("processed", {}).items():
         reminder = dict(entry.get("reminder", {}))
@@ -1638,16 +1646,21 @@ def sync_reminders(state: dict[str, Any], dry_run: bool = False) -> dict[str, in
 
         if status == "active":
             reminder_id = reminder.get("id", "")
+            existing_item = existing_by_id.get(reminder_id) if reminder_id else None
             if not reminder_id:
-                attached_ids = available_by_title.get(entry.get("title", ""), [])
-                if attached_ids:
-                    reminder_id = attached_ids.pop(0)
+                attached_items = available_by_title.get(entry.get("title", ""), [])
+                if attached_items:
+                    attached = attached_items.pop(0)
+                    reminder_id = attached["id"]
+                    existing_item = attached
                     reminder = {"id": reminder_id}
                     sync_stats["attached"] += 1
 
             if dry_run:
                 if not reminder_id:
                     sync_stats["created"] += 1
+                elif existing_item and existing_item.get("isCompleted"):
+                    sync_stats["updated"] += 1
                 elif reminder.get("lastSyncedFingerprint") != desired_fingerprint:
                     sync_stats["updated"] += 1
                 else:
@@ -1657,7 +1670,7 @@ def sync_reminders(state: dict[str, Any], dry_run: bool = False) -> dict[str, in
             if not reminder_id:
                 reminder_id = create_reminder_for_entry(entry, list_name, account_name)
                 sync_stats["created"] += 1
-            elif reminder.get("lastSyncedFingerprint") != desired_fingerprint:
+            elif (existing_item and existing_item.get("isCompleted")) or reminder.get("lastSyncedFingerprint") != desired_fingerprint:
                 updated_id = update_reminder_for_entry(entry, reminder_id, list_name, account_name)
                 if updated_id is None:
                     reminder_id = create_reminder_for_entry(entry, list_name, account_name)

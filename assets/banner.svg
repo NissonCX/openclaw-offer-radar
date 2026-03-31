@@ -1,43 +1,48 @@
-<svg width="1280" height="640" viewBox="0 0 1280 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OpenClaw Offer Radar">
+<svg width="800" height="200" viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0a1320"/>
-      <stop offset="100%" stop-color="#15314d"/>
+    <!-- 彩虹渐变 -->
+    <linearGradient id="rainbow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ff6b6b"/>
+      <stop offset="16%" stop-color="#feca57"/>
+      <stop offset="33%" stop-color="#48dbfb"/>
+      <stop offset="50%" stop-color="#ff9ff3"/>
+      <stop offset="66%" stop-color="#54a0ff"/>
+      <stop offset="83%" stop-color="#5f27cd"/>
+      <stop offset="100%" stop-color="#ff6b6b"/>
     </linearGradient>
-    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#64e4ff"/>
-      <stop offset="100%" stop-color="#87ef9f"/>
-    </linearGradient>
+
+    <!-- 霓虹发光 -->
+    <filter id="neonGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- 强阴影 -->
+    <filter id="strongShadow">
+      <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#ff9ff3" flood-opacity="0.8"/>
+    </filter>
   </defs>
 
-  <rect width="1280" height="640" rx="32" fill="url(#bg)"/>
-  <circle cx="1020" cy="118" r="170" fill="#1b4668" opacity="0.20"/>
-  <circle cx="180" cy="540" r="210" fill="#1c5a67" opacity="0.16"/>
+  <!-- 深色背景 -->
+  <rect width="800" height="200" fill="#0d1117" rx="12"/>
 
-  <g transform="translate(88 104)">
-    <rect x="0" y="0" width="218" height="42" rx="21" fill="#13283f" stroke="#64e4ff" stroke-width="1.5"/>
-    <text x="24" y="27" font-size="20" font-family="SFMono-Regular, Menlo, Monaco, Consolas, monospace" fill="#a9efff">OPENCLAW SKILL</text>
+  <!-- ASCII Art 风格的 OfferCatcher -->
+  <text x="400" y="100" text-anchor="middle" font-family="'Courier New', Consolas, monospace" font-size="26" fill="url(#rainbow)" filter="url(#neonGlow)">
+    <tspan x="400" dy="0">   ____  _____  _____              _             _   </tspan>
+    <tspan x="400" dy="28">  / __ \|  __ \|  __ \      /\   | |           | |  </tspan>
+    <tspan x="400" dy="28"> | |  | | |__) | |__) |    /  \  | | _____  _ __| |_ </tspan>
+    <tspan x="400" dy="28"> | |  | |  ___/|  ___/    / /\ \ | |/ / _ \| '__| __|</tspan>
+    <tspan x="400" dy="28"> | |__| | |    | |       / ____ \|   &lt; (_) | |  | |_ </tspan>
+    <tspan x="400" dy="28">  \____/|_|    |_|      /_/    \_\_|\_\___/|_|   \__|</tspan>
+  </text>
 
-    <text x="0" y="124" font-size="88" font-weight="700" font-family="'SF Pro Display', 'PingFang SC', 'Helvetica Neue', Arial, sans-serif" fill="#f7fbff">Offer Radar</text>
-    <text x="2" y="182" font-size="28" font-family="'PingFang SC', 'Noto Sans SC', 'Helvetica Neue', Arial, sans-serif" fill="#cfe4f7">把重要的招聘邮件，变成值得被提醒的事</text>
-
-    <g transform="translate(0 300)">
-      <rect x="0" y="0" width="140" height="52" rx="16" fill="#112338" stroke="#64e4ff" stroke-width="1.5"/>
-      <text x="34" y="33" font-size="23" font-family="SFMono-Regular, Menlo, Monaco, Consolas, monospace" fill="#eefcff">Gmail</text>
-
-      <rect x="162" y="0" width="176" height="52" rx="16" fill="#112338" stroke="#87ef9f" stroke-width="1.5"/>
-      <text x="192" y="33" font-size="23" font-family="'PingFang SC', 'Noto Sans SC', 'Helvetica Neue', Arial, sans-serif" fill="#f5fff7">招聘事件</text>
-
-      <rect x="360" y="0" width="188" height="52" rx="16" fill="#112338" stroke="#64e4ff" stroke-width="1.5"/>
-      <text x="389" y="33" font-size="23" font-family="'PingFang SC', 'Noto Sans SC', 'Helvetica Neue', Arial, sans-serif" fill="#f7fbff">iPhone 提醒</text>
-    </g>
-  </g>
-
-  <g transform="translate(828 180)">
-    <rect x="0" y="0" width="308" height="188" rx="28" fill="#102338" stroke="#355e79" stroke-width="1.5"/>
-    <rect x="28" y="30" width="252" height="22" rx="11" fill="#173752"/>
-    <rect x="28" y="72" width="196" height="14" rx="7" fill="#2c5870"/>
-    <rect x="28" y="112" width="228" height="14" rx="7" fill="#244d68"/>
-    <rect x="28" y="150" width="160" height="14" rx="7" fill="url(#accent)"/>
-  </g>
+  <!-- 装饰性星星 -->
+  <text x="50" y="30" font-size="20" fill="#feca57">✨</text>
+  <text x="750" y="30" font-size="20" fill="#ff6b6b">✨</text>
+  <text x="30" y="180" font-size="16" fill="#48dbfb">⭐</text>
+  <text x="770" y="180" font-size="16" fill="#ff9ff3">⭐</text>
 </svg>

@@ -183,6 +183,57 @@ class EventInput:
     sender: str
 
 
+def normalize_event_text(text: str) -> str:
+    """规范化事件文本，清理转义换行和多余空白。"""
+    if not text:
+        return ""
+    text = text.replace("\\r\\n", "\n").replace("\\n", "\n").replace("\\t", " ")
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    text = text.replace("：", ":")
+    lines = [line.strip(" \t-") for line in text.split("\n")]
+    lines = [line for line in lines if line]
+    return "\n".join(lines)
+
+
+def sanitize_title(title: str, company: str, event_type: str) -> str:
+    """清洗标题，避免噪声符号和不自然空格。"""
+    cleaned = normalize_event_text(title or f"{company}{event_type}").replace("\n", " ")
+    cleaned = re.sub(r"^[!！·•\s]+", "", cleaned)
+    cleaned = cleaned.replace("(", "（").replace(")", "）")
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    cleaned = re.sub(r"([\u4e00-\u9fff])\s+([\u4e00-\u9fff])", r"\1\2", cleaned)
+    cleaned = re.sub(r"([\u4e00-\u9fff])\s+([A-Za-z0-9])", r"\1\2", cleaned)
+    cleaned = re.sub(r"([A-Za-z0-9])\s+([\u4e00-\u9fff])", r"\1\2", cleaned)
+    return cleaned
+
+
+def sanitize_note_lines(lines: list[str]) -> str:
+    """清洗备注行，统一字段格式。"""
+    normalized: list[str] = []
+    for raw_line in lines:
+        line = normalize_event_text(raw_line)
+        if not line:
+            continue
+        line = re.sub(r"^链接\s*:\s*", "入口：", line)
+        line = re.sub(r"^链接：\s*", "入口：", line)
+        line = re.sub(r"^入口\s*:\s*", "入口：", line)
+        line = re.sub(r"^联系人\s*:\s*", "联系人：", line)
+        line = re.sub(r"^会议ID\s*:\s*", "会议ID：", line)
+        line = re.sub(r"^会议号\s*:\s*", "会议号：", line)
+        line = re.sub(r"^时间\s*:\s*", "时间：", line)
+        line = re.sub(r"^截止\s*:\s*", "截止：", line)
+        line = re.sub(r"^岗位\s*:\s*", "岗位：", line)
+        normalized.extend(part for part in line.split("\n") if part)
+
+    deduped: list[str] = []
+    seen: set[str] = set()
+    for line in normalized:
+        if line not in seen:
+            deduped.append(line)
+            seen.add(line)
+    return "\n".join(deduped)
+
+
 # ============== Apple Mail 操作 ==============
 
 def run_text(cmd: list[str], timeout: int | None = None) -> str:
@@ -528,12 +579,14 @@ def apply_events(args: argparse.Namespace) -> int:
             note_parts.append(f"岗位：{evt['role']}")
         if evt.get("link"):
             note_parts.append(f"入口：{evt['link']}")
+        if evt.get("note"):
+            note_parts.append(evt["note"])
 
         # 截断过长的字段
-        title = evt.get("title", f"{evt.get('company', '')}{evt.get('event_type', '')}")
+        title = sanitize_title(evt.get("title", ""), evt.get("company", ""), evt.get("event_type", ""))
         if len(title) > MAX_EVENT_TITLE_LENGTH:
             title = title[:MAX_EVENT_TITLE_LENGTH]
-        note = "\n".join(note_parts)
+        note = sanitize_note_lines(note_parts)
         if len(note) > MAX_EVENT_NOTE_LENGTH:
             note = note[:MAX_EVENT_NOTE_LENGTH]
 

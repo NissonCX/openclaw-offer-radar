@@ -1,6 +1,7 @@
 ---
 name: offercatcher
-description: Turn recruiting emails into native reminders. Use when user mentions "interview", "coding test", "assessment", "recruiting email", "sync to reminders", or "don't miss my interview". AI-powered parsing works for all languages and email formats.
+description: Turn recruiting emails into native Apple Reminders. AI-powered parsing extracts interview/assessment events and syncs to iPhone.
+version: 0.1.0
 ---
 
 # OfferCatcher

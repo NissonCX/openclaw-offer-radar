@@ -76,13 +76,23 @@ OpenClaw will automatically parse the results and create reminders.
 - Python 3.11+
 - [OpenClaw](https://github.com/NissonCX/openclaw) (optional, for automation)
 
-### Option 1: One-Line Install (Recommended)
+### Option 1: Install from ClawHub (Recommended)
+
+```bash
+# Search for the skill
+openclaw skills search offercatcher
+
+# Install to your workspace
+openclaw skills install offercatcher
+```
+
+### Option 2: One-Line Install
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/NissonCX/offercatcher/main/install.sh | bash
 ```
 
-### Option 2: Manual Install
+### Option 3: Manual Install
 
 ```bash
 git clone https://github.com/NissonCX/offercatcher.git

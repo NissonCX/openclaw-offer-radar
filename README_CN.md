@@ -76,13 +76,23 @@ OpenClaw 会自动解析结果并创建提醒。
 - Python 3.11+
 - [OpenClaw](https://github.com/NissonCX/openclaw)（可选，用于自动化）
 
-### 方式一：一键安装（推荐）
+### 方式一：从 ClawHub 安装（推荐）
+
+```bash
+# 搜索 skill
+openclaw skills search offercatcher
+
+# 安装到工作区
+openclaw skills install offercatcher
+```
+
+### 方式二：一键安装
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/NissonCX/offercatcher/main/install.sh | bash
 ```
 
-### 方式二：手动安装
+### 方式三：手动安装
 
 ```bash
 git clone https://github.com/NissonCX/offercatcher.git

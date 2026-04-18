@@ -1,9 +1,21 @@
 #!/usr/bin/env python3
+"""
+OfferCatcher Apple Reminders bridge.
+
+OpenClaw 负责扫描、解析和状态编排；真正写入 Apple Reminders 交给这个桥接层。
+
+实现策略：
+1. 优先使用 remindctl（Swift + EventKit），避免依赖后台 node -> Reminders.app 的 Automation 权限。
+2. 当 remindctl 不可用时，再回退到 osascript / AppleScript。
+"""
+
 import argparse
 import datetime as dt
 import json
+import os
 import subprocess
 import sys
+from typing import Any
 
 
 PRIORITY_MAP = {
@@ -28,6 +40,23 @@ MONTH_MAP = {
     12: "December",
 }
 
+REMINDCTL = os.environ.get("REMINDCTL_PATH", "/opt/homebrew/bin/remindctl")
+
+
+def has_remindctl() -> bool:
+    return os.path.exists(REMINDCTL) and os.access(REMINDCTL, os.X_OK)
+
+
+def run_remindctl(args: list[str]) -> subprocess.CompletedProcess[str]:
+    cmd = [REMINDCTL, *args]
+    return subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+
 
 def run_applescript(lines: list[str]) -> subprocess.CompletedProcess[str]:
     cmd = ["osascript"]
@@ -43,18 +72,6 @@ def run_applescript(lines: list[str]) -> subprocess.CompletedProcess[str]:
 
 
 def escape(text: str) -> str:
-    """
-    转义 AppleScript 字符串中的特殊字符。
-
-    AppleScript 特殊字符：
-    - \\ (反斜杠) - 转义字符
-    - " (双引号) - 字符串边界
-    - 换行符 - 需要转义为 \\n 或使用 linefeed 关键字
-    - 制表符 - 需要转义为 \\t 或使用 tab 关键字
-
-    注意：AppleScript 字符串中使用 & 作为连接运算符，
-    但在字符串内部不会被解析，所以不需要转义。
-    """
     if not text:
         return ""
     return (
@@ -68,12 +85,6 @@ def escape(text: str) -> str:
 
 
 def applescript_text_expr(text: str) -> str:
-    """
-    构建 AppleScript 多行字符串表达式。
-
-    使用 splitlines() 分割文本，然后用 linefeed 连接各部分，
-    避免在字符串内部处理换行符。每个部分都经过完整的 escape() 转义。
-    """
     if not text:
         return '""'
     parts = text.splitlines()
@@ -81,13 +92,8 @@ def applescript_text_expr(text: str) -> str:
 
 
 def due_lines(raw_due: str) -> list[str]:
-    for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"):
-        try:
-            parsed = dt.datetime.strptime(raw_due, fmt)
-            break
-        except ValueError:
-            continue
-    else:
+    parsed = parse_due(raw_due)
+    if parsed is None:
         raise SystemExit(f"unsupported due format: {raw_due}")
 
     return [
@@ -101,7 +107,55 @@ def due_lines(raw_due: str) -> list[str]:
     ]
 
 
+def parse_due(raw_due: str | None) -> dt.datetime | None:
+    if not raw_due:
+        return None
+    for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"):
+        try:
+            return dt.datetime.strptime(raw_due, fmt)
+        except ValueError:
+            continue
+    return None
+
+
+def due_for_remindctl(raw_due: str | None) -> str | None:
+    parsed = parse_due(raw_due)
+    if parsed is None:
+        return None
+    return parsed.strftime("%Y-%m-%d %H:%M")
+
+
+def rewrite_stdout(proc: subprocess.CompletedProcess[str], stdout: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.CompletedProcess(proc.args, proc.returncode, stdout, proc.stderr)
+
+
+def parse_json_output(proc: subprocess.CompletedProcess[str]) -> Any:
+    raw = (proc.stdout or proc.stderr).strip()
+    if not raw:
+        return None
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        return None
+
+
+def reminder_row(payload: Any) -> str:
+    if not isinstance(payload, dict):
+        return ""
+    return "\t".join([
+        str(payload.get("id", "")),
+        str(payload.get("listName", "")),
+        str(payload.get("title", "")),
+    ]).rstrip("\t")
+
+
 def ensure_list(list_name: str, account_name: str) -> None:
+    if has_remindctl():
+        proc = run_remindctl(["list", list_name, "--create", "--json", "--no-input"])
+        if proc.returncode != 0:
+            raise SystemExit(proc.stderr.strip() or proc.stdout.strip() or "failed to ensure list via remindctl")
+        return
+
     escaped_list = escape(list_name)
     escaped_account = escape(account_name)
     script = [
@@ -130,6 +184,19 @@ def create_reminder(
     priority: str,
 ) -> subprocess.CompletedProcess[str]:
     ensure_list(list_name, account_name)
+
+    if has_remindctl():
+        args = ["add", "--title", title, "--list", list_name, "--priority", priority, "--json", "--no-input"]
+        due_value = due_for_remindctl(due)
+        if due_value:
+            args.extend(["--due", due_value])
+        if notes:
+            args.extend(["--notes", notes])
+        proc = run_remindctl(args)
+        row = reminder_row(parse_json_output(proc))
+        if proc.returncode == 0 and row:
+            return rewrite_stdout(proc, row + "\n")
+        return proc
 
     escaped_list = escape(list_name)
     escaped_title = escape(title)
@@ -173,6 +240,32 @@ def update_reminder(
     priority: str,
 ) -> subprocess.CompletedProcess[str]:
     ensure_list(list_name, account_name)
+
+    if has_remindctl():
+        args = [
+            "edit", reminder_id,
+            "--title", title,
+            "--list", list_name,
+            "--priority", priority,
+            "--incomplete",
+            "--json",
+            "--no-input",
+        ]
+        due_value = due_for_remindctl(due)
+        if due_value:
+            args.extend(["--due", due_value])
+        else:
+            args.append("--clear-due")
+        if notes:
+            args.extend(["--notes", notes])
+        proc = run_remindctl(args)
+        output = (proc.stdout or proc.stderr).strip()
+        if proc.returncode != 0 and "not found" in output.lower():
+            return rewrite_stdout(proc, "NOT_FOUND\n")
+        row = reminder_row(parse_json_output(proc))
+        if proc.returncode == 0 and row:
+            return rewrite_stdout(proc, row + "\n")
+        return proc
 
     escaped_list = escape(list_name)
     escaped_id = escape(reminder_id)
@@ -226,6 +319,12 @@ def delete_reminder(
     reminder_id: str,
 ) -> subprocess.CompletedProcess[str]:
     ensure_list(list_name, account_name)
+
+    if has_remindctl():
+        proc = run_remindctl(["delete", reminder_id, "--force", "--quiet", "--no-input"])
+        if proc.returncode == 0:
+            return rewrite_stdout(proc, reminder_id + "\n")
+        return proc
 
     escaped_list = escape(list_name)
     escaped_id = escape(reminder_id)
@@ -292,41 +391,75 @@ def delete_reminder_cmd(args: argparse.Namespace) -> int:
 
 
 def clear_list(args: argparse.Namespace) -> int:
+    if has_remindctl():
+        proc = run_remindctl(["list", args.list, "--json", "--no-input"])
+        if proc.returncode != 0:
+            output = (proc.stderr or proc.stdout).strip()
+            if output:
+                print(output, file=sys.stderr)
+            return proc.returncode
+        payload = parse_json_output(proc)
+        reminders = payload if isinstance(payload, list) else []
+        count = 0
+        for reminder in reminders:
+            reminder_id = reminder.get("id")
+            if not reminder_id:
+                continue
+            delete_proc = delete_reminder(args.list, args.account, reminder_id)
+            if delete_proc.returncode == 0:
+                count += 1
+        print(str(count))
+        return 0
+
     ensure_list(args.list, args.account)
     escaped_list = escape(args.list)
     script = [
         'tell application "Reminders"',
         f'tell list "{escaped_list}"',
-        "set itemCount to count every reminder",
-        "repeat while (count every reminder) > 0",
-        "delete reminder 1",
-        "end repeat",
-        "return itemCount",
-        "end tell",
-        "end tell",
+        'set targetCount to count of reminders',
+        'repeat while (count of reminders) > 0',
+        'delete reminder 1',
+        'end repeat',
+        'return targetCount as string',
+        'end tell',
+        'end tell',
     ]
     proc = run_applescript(script)
     output = (proc.stdout or proc.stderr).strip()
-    if output:
-        print(output)
-    return proc.returncode
+    if proc.returncode != 0:
+        if output:
+            print(output, file=sys.stderr)
+        return proc.returncode
+    print(output or "0")
+    return 0
 
 
 def list_reminders(args: argparse.Namespace) -> int:
+    if has_remindctl():
+        proc = run_remindctl(["list", args.list, "--json", "--no-input"])
+        payload = parse_json_output(proc)
+        if proc.returncode == 0 and isinstance(payload, list):
+            for reminder in payload:
+                row = reminder_row(reminder)
+                if row:
+                    print(row)
+            return 0
+        output = (proc.stdout or proc.stderr).strip()
+        if output:
+            print(output)
+        return proc.returncode
+
     ensure_list(args.list, args.account)
     escaped_list = escape(args.list)
     script = [
         'tell application "Reminders"',
         f'tell list "{escaped_list}"',
-        "set rows to {}",
+        "set outText to \"\"",
         "set theReminders to every reminder",
         "repeat with r in theReminders",
-        'set completedFlag to "0"',
-        "if completed of r then set completedFlag to \"1\"",
-        "set end of rows to (id of r & tab & name of r & tab & completedFlag)",
+        'set outText to outText & (id of r as string) & tab & (name of container of r as string) & tab & (name of r as string) & linefeed',
         "end repeat",
-        "set AppleScript's text item delimiters to linefeed",
-        "return rows as text",
+        "return outText",
         "end tell",
         "end tell",
     ]
@@ -379,7 +512,7 @@ def sync_plan(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Native Apple Reminders bridge")
+    parser = argparse.ArgumentParser(description="OfferCatcher native reminders bridge")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     add = sub.add_parser("add")

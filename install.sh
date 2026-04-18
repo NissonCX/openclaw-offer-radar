@@ -51,7 +51,14 @@ fi
 echo ""
 echo "✅ 安装完成！"
 echo ""
+if ! command -v remindctl >/dev/null 2>&1; then
+    echo "💡 推荐安装原生提醒事项桥接（更稳定，不依赖 node 直接控制 Reminders.app）"
+    echo "   brew install steipete/tap/remindctl"
+    echo "   remindctl authorize"
+    echo ""
+fi
+
 echo "📋 使用方式："
 echo "   1. 扫描邮件：python3 $SKILL_PATH/scripts/recruiting_sync.py --scan-only"
 echo "   2. OpenClaw LLM 解析邮件内容"
-echo "   3. 应用结果：python3 $SKILL_PATH/scripts/recruiting_sync.py --apply-events /tmp/events.json"
+echo "   3. 通过原生 bridge 落地：python3 $SKILL_PATH/scripts/recruiting_sync.py --apply-events /tmp/events.json"

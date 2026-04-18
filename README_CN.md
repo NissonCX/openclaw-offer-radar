@@ -33,13 +33,22 @@
 
 ## 解决方案
 
-**OfferCatcher** 自动扫描你的邮件，使用 AI 提取招聘事件，在 iPhone/Mac 上创建原生提醒。
+**OfferCatcher** 自动扫描你的邮件，使用 AI 提取招聘事件，再把它们同步到 iPhone/Mac 的原生提醒事项。
 
 ```
 📧 邮件到达 → 🤖 AI 解析 → 🔔 提醒创建
 ```
 
 没有正则。没有脆弱的模式匹配。智能提取，适配所有邮件格式和语言。
+
+## 架构说明
+
+OfferCatcher 故意拆成两层：
+
+- **OpenClaw 编排层**：负责扫描 Apple Mail、调用 LLM、校验事件 JSON、决定哪些事件需要同步。
+- **原生桥接层**：负责真正写入提醒事项。`scripts/apple_reminders_bridge.py` 默认优先走 `remindctl`（Swift + EventKit），只有在本机没有 `remindctl` 时才回退到 AppleScript。
+
+这样做是为了避免把后台 `node -> 提醒事项.app` 的 Automation 权限当成主路径。对 macOS 来说，这条权限链通常不如原生 bridge 稳定。
 
 ## 功能特性
 
@@ -59,6 +68,10 @@
 # 安装
 curl -sSL https://raw.githubusercontent.com/NissonCX/offercatcher/main/install.sh | bash
 
+# 推荐安装原生桥接
+brew install steipete/tap/remindctl
+remindctl authorize
+
 # 配置
 echo 'mail_account: "Gmail"' >> ~/.openclaw/offercatcher.yaml
 
@@ -74,6 +87,7 @@ OpenClaw 会自动解析结果并创建提醒。
 
 - macOS（Apple Mail 和 Reminders 集成）
 - Python 3.11+
+- 推荐安装 `remindctl`（`brew install steipete/tap/remindctl`）
 - [OpenClaw](https://github.com/NissonCX/openclaw)（可选，用于自动化）
 
 ### 方式一：从 ClawHub 安装（推荐）
@@ -90,6 +104,12 @@ openclaw skills install offercatcher
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/NissonCX/offercatcher/main/install.sh | bash
+```
+
+安装完成后，建议先授权原生桥接：
+
+```bash
+remindctl authorize
 ```
 
 ### 方式三：手动安装
@@ -154,7 +174,7 @@ python3 scripts/recruiting_sync.py --scan-only
 OpenClaw 自动：
 1. 使用 LLM 解析每封邮件
 2. 提取公司、事件类型、时间、链接
-3. 创建原生 Apple Reminders
+3. 把最终写入交给原生提醒事项桥接层
 
 或手动应用解析结果：
 
@@ -174,10 +194,10 @@ python3 scripts/manual_event.py \
 ## 工作原理
 
 ```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   --scan-only   │ ──▶ │   OpenClaw LLM  │ ──▶ │  --apply-events │
-│    扫描邮件     │     │    解析事件     │     │   创建提醒      │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
+┌─────────────────┐     ┌─────────────────┐     ┌────────────────────────────┐
+│   --scan-only   │ ──▶ │   OpenClaw LLM  │ ──▶ │  原生桥接写入提醒事项       │
+│    扫描邮件     │     │    解析事件     │     │  remindctl / AppleScript   │
+└─────────────────┘     └─────────────────┘     └────────────────────────────┘
 ```
 
 ### 为什么用 LLM 而不是正则？

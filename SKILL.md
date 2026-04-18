@@ -1,6 +1,6 @@
 ---
 name: offercatcher
-description: Turn recruiting emails into native Apple Reminders. AI-powered parsing extracts interview/assessment events and syncs to iPhone.
+description: Use when the user wants recruiting emails turned into native Apple Reminders on macOS/iPhone. OpenClaw should scan and parse the mail, then hand reminder writes to the local native bridge instead of relying on node directly controlling Reminders.app.
 version: 0.1.0
 ---
 
@@ -8,7 +8,14 @@ version: 0.1.0
 
 ## What It Does
 
-Scans your Apple Mail for recruiting emails, extracts important events (interviews, assessments, deadlines) using LLM, and creates native Apple Reminders that sync to your iPhone.
+Scans Apple Mail for recruiting emails, extracts important events (interviews, assessments, deadlines) with LLM, and syncs them to native Apple Reminders on iPhone/Mac.
+
+## Execution Boundary
+
+- OpenClaw is responsible for orchestration: scan mail, ask the LLM to parse events, and decide whether anything should be written.
+- `scripts/apple_reminders_bridge.py` is the only reminder write path.
+- The bridge prefers `remindctl` (Swift + EventKit) and only falls back to AppleScript if `remindctl` is unavailable.
+- Do not rely on `node -> Reminders.app` Automation as the primary path. On macOS this permission is often less stable than a native Reminders bridge.
 
 ## How To Use
 
@@ -22,9 +29,9 @@ Scans your Apple Mail for recruiting emails, extracts important events (intervie
 ### Workflow
 
 ```
-1. Scan: --scan-only → returns JSON with raw emails
-2. Parse: OpenClaw LLM extracts events from emails
-3. Apply: --apply-events → creates Apple Reminders
+1. Scan: `--scan-only` → returns JSON with raw emails
+2. Parse: OpenClaw LLM extracts structured recruiting events
+3. Apply: `--apply-events` → sends validated events to the native reminders bridge
 ```
 
 ### Step 1: Scan Emails
@@ -50,6 +57,8 @@ For each email, extract:
 python3 scripts/recruiting_sync.py --apply-events /tmp/events.json
 ```
 
+This does not write Reminders directly from OpenClaw itself. It always routes through `scripts/apple_reminders_bridge.py`.
+
 ## LLM Parsing Prompt
 
 ```
@@ -71,6 +80,7 @@ Extract:
 
 - Reminder title: Company + Event type (e.g., "Google Interview", "Meta Coding Test")
 - Include: Time, role, link in notes
+- Prefer native bridge writes through `remindctl`; if remindctl is unavailable, let the bridge use its AppleScript fallback
 - If no new events: respond `HEARTBEAT_OK`
 
 ## Configuration

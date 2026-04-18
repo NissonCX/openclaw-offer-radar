@@ -33,13 +33,22 @@ You're job hunting. Your inbox is flooded with recruiting emails—interview inv
 
 ## The Solution
 
-**OfferCatcher** automatically scans your emails, extracts recruiting events using AI, and creates native reminders on your iPhone/Mac.
+**OfferCatcher** automatically scans your emails, extracts recruiting events using AI, and syncs them into native reminders on your iPhone/Mac.
 
 ```
 📧 Email arrives → 🤖 AI parses it → 🔔 Reminder created
 ```
 
 No regex. No brittle pattern matching. Just intelligent extraction that works across all email formats and languages.
+
+## Architecture
+
+OfferCatcher is intentionally split into two layers:
+
+- **OpenClaw orchestration** handles scanning Apple Mail, calling the LLM, validating event JSON, and deciding what should be synced.
+- **Native bridge execution** handles the final reminder write. `scripts/apple_reminders_bridge.py` prefers `remindctl` (Swift + EventKit) and only falls back to AppleScript when needed.
+
+This design avoids relying on a background Node process directly automating `Reminders.app`, which can be unreliable under macOS TCC / Automation permissions.
 
 ## Features
 
@@ -59,6 +68,10 @@ No regex. No brittle pattern matching. Just intelligent extraction that works ac
 # Install
 curl -sSL https://raw.githubusercontent.com/NissonCX/offercatcher/main/install.sh | bash
 
+# Recommended native bridge
+brew install steipete/tap/remindctl
+remindctl authorize
+
 # Configure
 echo 'mail_account: "Gmail"' >> ~/.openclaw/offercatcher.yaml
 
@@ -74,6 +87,7 @@ OpenClaw will automatically parse the results and create reminders.
 
 - macOS (Apple Mail & Reminders integration)
 - Python 3.11+
+- `remindctl` recommended (`brew install steipete/tap/remindctl`)
 - [OpenClaw](https://github.com/NissonCX/openclaw) (optional, for automation)
 
 ### Option 1: Install from ClawHub (Recommended)
@@ -90,6 +104,12 @@ openclaw skills install offercatcher
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/NissonCX/offercatcher/main/install.sh | bash
+```
+
+Then authorize the native bridge once:
+
+```bash
+remindctl authorize
 ```
 
 ### Option 3: Manual Install
@@ -154,7 +174,7 @@ Output (JSON for OpenClaw LLM to parse):
 OpenClaw automatically:
 1. Parses each email with LLM
 2. Extracts company, event type, time, link
-3. Creates native Apple Reminders
+3. Hands the final write to the native reminders bridge
 
 Or manually apply parsed events:
 
@@ -174,10 +194,10 @@ python3 scripts/manual_event.py \
 ## How It Works
 
 ```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   --scan-only   │ ──▶ │   OpenClaw LLM  │ ──▶ │  --apply-events │
-│   Scan emails   │     │   Parse events  │     │ Create reminder │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
+┌─────────────────┐     ┌─────────────────┐     ┌────────────────────────────┐
+│   --scan-only   │ ──▶ │   OpenClaw LLM  │ ──▶ │  Native bridge writes      │
+│   Scan emails   │     │   Parse events  │     │  remindctl / AppleScript   │
+└─────────────────┘     └─────────────────┘     └────────────────────────────┘
 ```
 
 ### Why LLM Over Regex?
